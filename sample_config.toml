@@ -1,0 +1,76 @@
+# number of CPUs available
+processes = 16
+
+
+[data]
+# directory containing a subdirectory for each sample, each containing an adjacency
+# matrix .csv file for each layer and inter-layer connection matrices in .csv format
+raw_data = "~/HeartNet/raw_data/"
+
+# parent directory where the data is stored after sparsification and normalization
+preprocessed_data = "~/HeartNet/preprocessed_data/"
+
+# parent directory where the preprocessed samples are stored as edge list .csv files
+edgelists = "~/HeartNet/edgelists/"
+
+# parent directory in which an output directory for the node embeddings will be created
+embeddings = "~/HeartNet/embeddings/"
+
+# parent directory in which an output directory for the GW distances will be created
+gw_dir = "~/HeartNet/gromov_wasserstein/"
+
+# parent directory in which an output directory for the predicted clusterings will be created
+clusterings = "~/HeartNet/clusterings/"
+
+
+[preprocessing]
+weights = "distance"   # "distance" or "similarity"
+
+[preprocessing.sparsification]
+sparsify_spot = true
+spot_k = 10   # used if sparsify_spot = true
+
+sparsify_celltype = true
+celltype_k = 5   # used if sparsify_celltype = true
+
+sparsify_interlayer = true
+interlayer_method = "knn"   # "knn", or "threshold", used if sparsify_interlayer = true
+interlayer_k = 10   # used if interlayer_method = "knn"
+interlayer_stds = 1   # number of standard deviations away from the mean where to set
+                      # the threshold. Used if interlayer_method = "threshold".
+
+[preprocessing.normalization]
+# Whether to normalize layers and inter-layer edges
+spot = true
+celltype = true
+interlayer = true
+
+
+[embedding]
+algorithm = "HeNHoE-2vec"   # In case different embedding algorithms are implemented in the future
+
+[embedding.parameters]
+p = 1
+q = 0.5
+s = [
+    {source = "celltype", target = "spot", s = 3},
+    {source = "spot", target = "celltype", s = 1}
+]
+dims = 128
+num_walks = 20
+walk_length = 20
+window_size = 10
+epochs = 1000
+
+
+[gromov_wasserstein]
+calculate_gw = true
+calculate_entr_gw = true
+epsilon = 0.05   # epsilon for entropically regularized gromov-wasserstein OT
+distribution = "uniform"   # "balanced" or "uniform"
+alpha = 0.5   # float between 0 and 1. Used if distribution = "balanced".
+
+
+[clustering]
+linkage_method = "ward"   # 'single', 'complete', 'average', or 'ward'
+n_clusters = 2
